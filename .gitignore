@@ -1,0 +1,13 @@
+# Executables
+roguelike
+unit_tests
+
+# Objects
+*.o
+tests/*.o
+
+# Debug symbols
+*.dSYM/
+
+# OS-specific
+.DS_Store

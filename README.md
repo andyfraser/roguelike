@@ -44,9 +44,11 @@ To verify the game's core logic, run the unit testing suite:
 make test
 ```
 
-## Contributing
+## Documentation
 
-Please refer to the [GEMINI.md](./GEMINI.md) for development conventions and architectural details.
+Detailed gameplay information can be found in the [User Manual](./docs/USER_MANUAL.md).
+
+For development conventions and architectural details, see [GEMINI.md](./GEMINI.md).
 
 ## License
 

@@ -7,6 +7,7 @@
 #include "monster.h"
 #include "skills.h"
 #include "item.h"
+#include "monster_data.h"
 
 #define MAX_MESSAGES 5
 char message_log[MAX_MESSAGES][80];
@@ -28,7 +29,10 @@ void init_game() {
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(2, COLOR_YELLOW, COLOR_BLACK); // Player
     init_pair(3, COLOR_RED, COLOR_BLACK);    // Monsters
-    init_pair(4, COLOR_CYAN, COLOR_BLACK);   // Items
+    init_pair(4, COLOR_CYAN, COLOR_BLACK);   // Items / Some monsters
+    init_pair(5, COLOR_GREEN, COLOR_BLACK);  // Monsters
+    init_pair(6, COLOR_BLUE, COLOR_BLACK);   // Monsters
+    init_pair(7, COLOR_MAGENTA, COLOR_BLACK);// Monsters
 }
 
 void cleanup_game() {
@@ -101,28 +105,6 @@ ClassType select_class() {
     }
 }
 
-typedef struct {
-    char name[32];
-    char symbol;
-    int color;
-    int base_hp;
-    int base_attack;
-    int base_xp;
-    int min_level;
-} MonsterTemplate;
-
-MonsterTemplate monster_templates[] = {
-    {"Giant Rat", 'r', 1, 5, 2, 20, 1},
-    {"Goblin", 'g', 3, 10, 4, 40, 1},
-    {"Orc Warrior", 'o', 3, 20, 6, 80, 2},
-    {"Skeleton", 's', 1, 15, 5, 60, 2},
-    {"Dark Elf", 'e', 4, 25, 8, 120, 3},
-    {"Troll", 'T', 3, 50, 12, 250, 4},
-    {"Dragon Hatchling", 'd', 3, 80, 15, 500, 5}
-};
-
-#define NUM_TEMPLATES (sizeof(monster_templates) / sizeof(MonsterTemplate))
-
 void spawn_monsters(MonsterList *monsters, Map *map, int player_level) {
     int spawned = 0;
     int target = 30; // Requested 30 monsters
@@ -133,9 +115,9 @@ void spawn_monsters(MonsterList *monsters, Map *map, int player_level) {
         
         if (map->tiles[y][x].type == TILE_FLOOR) {
             // Pick a template suitable for player level
-            int template_idx = rand() % NUM_TEMPLATES;
+            int template_idx = rand() % num_monster_templates;
             while (monster_templates[template_idx].min_level > player_level + 1) {
-                template_idx = rand() % NUM_TEMPLATES;
+                template_idx = rand() % num_monster_templates;
             }
             
             MonsterTemplate *t = &monster_templates[template_idx];
@@ -165,27 +147,35 @@ int main() {
     int start_x, start_y;
     map_generate_dungeon(&map, &start_x, &start_y);
 
-    Entity player = {"Player", start_x, start_y, '@', 2, 20, 20, 10, 10, 5, 0, 1, 0, selected_class, AI_NONE, true};
-    
+    Entity player = {"Player", start_x, start_y, '@', 2, 20, 20, 10, 10, 5, 0, 1, 0, selected_class, AI_NONE, true, {"None", 0, WEAPON_NONE}};
+
     // Adjust stats based on class
     switch (selected_class) {
         case CLASS_WARRIOR:
             player.hp = player.max_hp = 30;
             player.attack = 7;
             player.mana = player.max_mana = 5;
+            strcpy(player.weapon.name, "Rusted Sword");
+            player.weapon.damage_bonus = 2;
+            player.weapon.type = WEAPON_SWORD;
             break;
         case CLASS_MAGE:
             player.hp = player.max_hp = 15;
             player.attack = 3;
             player.mana = player.max_mana = 20;
+            strcpy(player.weapon.name, "Oak Staff");
+            player.weapon.damage_bonus = 1;
+            player.weapon.type = WEAPON_STAFF;
             break;
         case CLASS_ROGUE:
             player.hp = player.max_hp = 20;
             player.attack = 5;
             player.mana = player.max_mana = 10;
+            strcpy(player.weapon.name, "Dull Dagger");
+            player.weapon.damage_bonus = 1;
+            player.weapon.type = WEAPON_SWORD;
             break;
     }
-
     MonsterList monsters;
     monster_init_list(&monsters);
     spawn_monsters(&monsters, &map, player.level);
@@ -231,9 +221,8 @@ int main() {
         attroff(COLOR_PAIR(player.color));
 
         // Render stats
-        mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/100 | HP: %d/%d | Mana: %d/%d | 'h' for help, 'q' to quit", 
-                 player.level, player.xp, player.hp, player.max_hp, player.mana, player.max_mana);
-
+        mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/%d | HP: %d/%d | Mana: %d/%d | 'h' for help, 'q' to quit",
+                 player.level, player.xp, 100 * player.level, player.hp, player.max_hp, player.mana, player.max_mana);
         // Render messages
         for (int i = 0; i < MAX_MESSAGES; i++) {
             mvprintw(MAP_HEIGHT + 1 + i, 0, "%s", message_log[i]);
@@ -362,19 +351,32 @@ int main() {
 
         if (acted) {
             // Level up check
-            if (player.xp >= 100) {
+            int xp_cap = 100 * player.level;
+            if (player.xp >= xp_cap) {
                 player.level++;
-                player.xp -= 100;
-                player.max_hp += 10;
+                player.xp -= xp_cap;
+                player.max_hp += 10 + (player.level * 2);
                 player.hp = player.max_hp;
-                player.max_mana += 5;
+                player.max_mana += 5 + player.level;
                 player.mana = player.max_mana;
-                player.attack += 2;
-                char msg[80];
-                snprintf(msg, 80, "LEVEL UP! You are now level %d!", player.level);
-                add_message(msg);
-            }
+                player.attack += 2 + (player.level / 2);
 
+                // Scale weapon damage
+                player.weapon.damage_bonus += 1 + (player.level / 3);
+
+                // Scale skill damage
+                melee.damage += 2;
+                fireball.damage += 5 + (player.level * 2); // Spells get more powerful
+
+                char msg[80];
+                snprintf(msg, 80, "LEVEL UP! Level %d! Weapon & Spells grew stronger!", player.level);
+                add_message(msg);
+
+                if (player.class == CLASS_MAGE && player.level == 3) {
+                    add_message("You mastered Fireball's true potential (Increased Range)!");
+                    fireball.range += 2;
+                }
+            }
             monster_update_all(&monsters, &map, &player);
             // Basic monster attack player
             for (int i = 0; i < monsters.count; i++) {
@@ -389,8 +391,8 @@ int main() {
                         add_message("YOU DIED! Game Over.");
                         clear();
                         map_render(&map);
-                        mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/100 | HP: %d/%d | Mana: %d/%d", 
-                                 player.level, player.xp, player.hp, player.max_hp, player.mana, player.max_mana);
+                        mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/%d | HP: %d/%d | Mana: %d/%d", 
+                         player.level, player.xp, 100 * player.level, player.hp, player.max_hp, player.mana, player.max_mana);
                         for (int j = 0; j < MAX_MESSAGES; j++) mvprintw(MAP_HEIGHT + 1 + j, 0, "%s", message_log[j]);
                         refresh();
                         getch();

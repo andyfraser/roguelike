@@ -16,7 +16,7 @@ void skill_use(Skill skill, Entity *user, Map *map, MonsterList *monsters, Entit
         for (int i = 0; i < monsters->count; i++) {
             Entity *m = &monsters->monsters[i];
             if (m->alive && abs(m->x - user->x) <= 1 && abs(m->y - user->y) <= 1) {
-                int damage = user->attack + skill.damage;
+                int damage = user->attack + user->weapon.damage_bonus + skill.damage;
                 m->hp -= damage;
                 
                 if (m->hp <= 0) {

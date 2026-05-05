@@ -2,12 +2,12 @@ CC = cc
 CFLAGS = -Wall -Wextra -g -Iinclude
 LDFLAGS = -lncurses
 
-SRC = src/main.c src/map.c src/monster.c src/skills.c src/item.c
+SRC = src/main.c src/map.c src/monster.c src/skills.c src/item.c src/monster_data.c
 OBJ = $(SRC:src/%.c=obj/%.o)
 TARGET = roguelike
 
-TEST_SRC = tests/unit_tests.c src/map.c src/monster.c src/skills.c src/item.c
-TEST_OBJ = obj/unit_tests.o obj/map.o obj/monster.o obj/skills.o obj/item.o
+TEST_SRC = tests/unit_tests.c src/map.c src/monster.c src/skills.c src/item.c src/monster_data.c
+TEST_OBJ = obj/unit_tests.o obj/map.o obj/monster.o obj/skills.o obj/item.o obj/monster_data.o
 TEST_TARGET = unit_tests
 
 all: $(TARGET)

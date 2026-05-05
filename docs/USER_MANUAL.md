@@ -39,19 +39,34 @@ Keep an eye out for the **'!'** symbol. These are Health Potions that will resto
 
 ### Progression
 
-Defeating monsters grants you Experience Points (XP). Once you reach **100 XP**, you will **Level Up**, increasing your maximum Health, Mana, and Attack power.
+Defeating monsters grants you Experience Points (XP). The amount of XP needed to reach the next level increases as you grow stronger (**100 * Current Level**).
+
+When you **Level Up**:
+- Your **Maximum Health and Mana** increase significantly.
+- Your **Attack Power** improves, making your basic attacks more lethal.
+- Your **Special Skills** (like Melee and Fireball) are enhanced, dealing more damage to match tougher foes.
+- Your Health and Mana are fully restored.
 
 ## Monsters
 
-You will encounter a variety of threats in the dungeon:
+The dungeon is home to **100 unique species** of creatures. As you grow stronger, so do the threats you face. Here are some of the creatures you may encounter:
 
-- **'r' - Giant Rat:** Weak and common, but can overwhelm you in numbers.
-- **'g' - Goblin:** A basic fighter found in the upper levels.
-- **'o' - Orc Warrior:** Tougher and stronger than Goblins.
-- **'s' - Skeleton:** Resilient undead that require multiple hits.
-- **'e' - Dark Elf:** A dangerous foe with balanced stats.
-- **'T' - Troll:** Extremely high health and damage. Approach with caution!
-- **'d' - Dragon Hatchling:** The ultimate threat. High health and lethal attacks.
+### Tier 1: Early Threats (Player Level 1+)
+- **'r' - Giant Rat**, **'b' - Cave Bat**, **'s' - Green Slime**
+- **'g' - Goblin Scout**, **'S' - Giant Spider**, **'~' - Viper**
+- **'k' - Kobold**, **'B' - Fire Beetle**, **'c' - Cave Crab**, **'n' - Sewer Newt**
+
+### Tier 2: Dangerous Foes (Player Level 2+)
+- **'z' - Zombie**, **'k' - Skeleton**, **'o' - Orc Grunt**
+- **'G' - Gnoll Hunter**, **'h' - Restless Ghost**, **'j' - Acid Jelly**
+- **'H' - Hobgoblin Warrior**, **'w' - Gray Wolf**, **'T' - Giant Toad**, **'f' - Shadow Spirit**
+
+... [and so on for other tiers] ...
+
+### Tier 10: Deities and Endgame Bosses (Player Level 10+)
+- **'X' - God Slayer**, **'O' - World Eater**, **'C' - Chaos Avatar**
+- **'S' - Seraph of Death**, **'I' - Infernal Emperor**, **'T' - Astral Titan**
+- **'D' - Void Dragon**, **'B' - Elder Brain**, **'A' - The Architect**, **'#' - Omega Prime**
 
 ## Survival Tips
 

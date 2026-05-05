@@ -14,6 +14,19 @@ typedef enum {
     CLASS_ROGUE
 } ClassType;
 
+typedef enum {
+    WEAPON_NONE,
+    WEAPON_SWORD,
+    WEAPON_AXE,
+    WEAPON_STAFF
+} WeaponType;
+
+typedef struct {
+    char name[32];
+    int damage_bonus;
+    WeaponType type;
+} Weapon;
+
 typedef struct {
     char name[32];
     int x, y;
@@ -30,6 +43,7 @@ typedef struct {
     ClassType class;
     AIType ai;
     bool alive;
+    Weapon weapon;
 } Entity;
 
 #endif

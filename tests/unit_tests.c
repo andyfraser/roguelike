@@ -2,10 +2,10 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
-#include "../map.h"
-#include "../entity.h"
-#include "../monster.h"
-#include "../skills.h"
+#include "map.h"
+#include "entity.h"
+#include "monster.h"
+#include "skills.h"
 
 // Helper to check if a tile is within bounds
 bool is_in_bounds(int x, int y) {

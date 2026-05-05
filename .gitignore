@@ -3,6 +3,7 @@ roguelike
 unit_tests
 
 # Objects
+obj/
 *.o
 tests/*.o
 

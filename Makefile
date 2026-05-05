@@ -1,13 +1,13 @@
 CC = cc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -Iinclude
 LDFLAGS = -lncurses
 
-SRC = main.c map.c monster.c skills.c item.c
-OBJ = $(SRC:.c=.o)
+SRC = src/main.c src/map.c src/monster.c src/skills.c src/item.c
+OBJ = $(SRC:src/%.c=obj/%.o)
 TARGET = roguelike
 
-TEST_SRC = tests/unit_tests.c map.c monster.c skills.c item.c
-TEST_OBJ = $(TEST_SRC:.c=.o)
+TEST_SRC = tests/unit_tests.c src/map.c src/monster.c src/skills.c src/item.c
+TEST_OBJ = obj/unit_tests.o obj/map.o obj/monster.o obj/skills.o obj/item.o
 TEST_TARGET = unit_tests
 
 all: $(TARGET)
@@ -15,7 +15,12 @@ all: $(TARGET)
 $(TARGET): $(OBJ)
 	$(CC) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
-%.o: %.c
+obj/%.o: src/%.c
+	@mkdir -p obj
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/unit_tests.o: tests/unit_tests.c
+	@mkdir -p obj
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test: $(TEST_TARGET)
@@ -25,6 +30,6 @@ $(TEST_TARGET): $(TEST_OBJ)
 	$(CC) $(TEST_OBJ) -o $(TEST_TARGET) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) $(TARGET) $(TEST_TARGET) tests/*.o
+	rm -rf obj $(TARGET) $(TEST_TARGET)
 
 .PHONY: all clean test

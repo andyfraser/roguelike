@@ -41,7 +41,8 @@ static void move_towards(Entity *m, int target_x, int target_y, Map *map, Monste
     int next_x = m->x + (dx > 0 ? 1 : (dx < 0 ? -1 : 0));
     int next_y = m->y + (dy > 0 ? 1 : (dy < 0 ? -1 : 0));
 
-    if (map->tiles[next_y][next_x].type != TILE_WALL) {
+    if (next_x >= 0 && next_x < MAP_WIDTH && next_y >= 0 && next_y < MAP_HEIGHT &&
+        map->tiles[next_y][next_x].type != TILE_WALL) {
         // Check collision with other monsters (simple)
         bool occupied = false;
         if (next_x == player->x && next_y == player->y) occupied = true;

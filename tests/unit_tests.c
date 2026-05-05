@@ -76,15 +76,13 @@ void test_skills_melee() {
     monster_init_list(&monsters);
     monster_spawn(&monsters, 11, 11, "Dummy", 'd', 1, 10, 2, 10, AI_CHASE);
     
-    Entity player = {"Player", 10, 10, '@', 2, 20, 20, 10, 10, 5, 0, 1, 0, CLASS_WARRIOR, AI_NONE, true};
+    Entity player = {"Player", 10, 10, '@', 2, 20, 20, 10, 10, 5, 0, 1, 0, CLASS_WARRIOR, AI_NONE, true, {"None", 0, WEAPON_NONE}};
     Skill melee = {"Melee", 0, 1, 5, SKILL_MELEE};
     
     // Player at (10,10), Monster at (11,11) -> adjacent
     skill_use(melee, &player, &map, &monsters, &player);
     
     // Monster should have taken 5 (skill) + 5 (player attack) = 10 damage
-    // Wait, in skills.c: int damage = user->attack + skill.damage;
-    // So 5 + 5 = 10. Monster HP was 10, so it should be dead.
     assert(monsters.monsters[0].hp <= 0);
     assert(monsters.monsters[0].alive == false);
     assert(player.xp == 10); // Gained XP reward
@@ -108,7 +106,7 @@ void test_skills_fireball() {
     monster_spawn(&monsters, 11, 11, "Monster 1", 'm', 1, 10, 2, 10, AI_CHASE);
     monster_spawn(&monsters, 12, 12, "Monster 2", 'm', 1, 10, 2, 10, AI_CHASE);
     
-    Entity player = {"Player", 10, 10, '@', 2, 20, 20, 20, 20, 5, 0, 1, 0, CLASS_MAGE, AI_NONE, true};
+    Entity player = {"Player", 10, 10, '@', 2, 20, 20, 20, 20, 5, 0, 1, 0, CLASS_MAGE, AI_NONE, true, {"None", 0, WEAPON_NONE}};
     Skill fireball = {"Fireball", 10, 5, 12, SKILL_FIREBALL};
     
     skill_use(fireball, &player, &map, &monsters, &player);
@@ -121,12 +119,39 @@ void test_skills_fireball() {
     printf("skill_use (Fireball) passed!\n");
 }
 
+void test_monster_movement_bounds() {
+    printf("Testing monster movement bounds...\n");
+    Map map;
+    map_init(&map);
+    MonsterList list;
+    monster_init_list(&list);
+    Entity player = {"Player", 50, 20, '@', 2, 20, 20, 10, 10, 5, 0, 1, 0, CLASS_WARRIOR, AI_NONE, true, {"None", 0, WEAPON_NONE}};
+    
+    // Spawn monster at the edge
+    monster_spawn(&list, 0, 0, "Test Monster", 'M', 3, 10, 2, 10, AI_CHASE);
+    
+    // Monster should stay in bounds even if trying to move out (towards player is in bounds here, but let's test -1)
+    list.monsters[0].x = 0;
+    list.monsters[0].y = 0;
+    player.x = -10; // Player way off to the left
+    player.y = -10; // Player way off to the top
+    
+    monster_update_all(&list, &map, &player);
+    
+    // Should stay at (0,0) or at least not go negative
+    assert(list.monsters[0].x >= 0);
+    assert(list.monsters[0].y >= 0);
+    
+    printf("monster movement bounds passed!\n");
+}
+
 int main() {
     test_map_init();
     test_fov();
     test_monster_spawn();
     test_skills_melee();
     test_skills_fireball();
+    test_monster_movement_bounds();
     
     printf("\nALL TESTS PASSED!\n");
     return 0;

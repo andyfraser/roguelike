@@ -75,4 +75,10 @@ The dungeon is home to **100 unique species** of creatures. As you grow stronger
 3. **Rest and Recover:** Pick up Health Potions whenever you find them; you'll need them for the tougher monsters on deeper levels.
 4. **Know When to Retreat:** If your HP is low, try to lure monsters into narrow corridors where only one can attack you at a time.
 
+## Game Over
+
+If your Health reaches 0, your journey ends. However, death is not the final exit! You will be prompted with a **"Play again? (y/n)"** message. 
+- Press **'y'** to return to the Class Selection screen and start a new adventure.
+- Press **'n'** or any other key to exit the game.
+
 Good luck, adventurer!

@@ -10,6 +10,7 @@ A classic, terminal-based Roguelike game built in C using the `ncurses` library.
 - **Ranged Magic:** Harness the power of the Mage's **Fireball** to incinerate visible enemies from a distance.
 - **Persistent Message Log:** Keep track of your battles, item pickups, and level-ups with a built-in logging system.
 - **Field of View (FOV):** Explore the darkness; only tiles within your line of sight are revealed.
+- **Replayability:** When your character dies, you can choose to immediately start a new adventure without restarting the application.
 - **Robust Testing:** Includes a dedicated unit testing suite to ensure game balance and stability.
 
 ## Getting Started

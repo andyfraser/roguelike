@@ -137,266 +137,275 @@ void spawn_monsters(MonsterList *monsters, Map *map, int player_level) {
 int main() {
     init_game();
 
-    for (int i = 0; i < MAX_MESSAGES; i++) strcpy(message_log[i], "");
+    bool play_again = true;
+    while (play_again) {
+        play_again = false;
+        for (int i = 0; i < MAX_MESSAGES; i++) strcpy(message_log[i], "");
 
-    ClassType selected_class = select_class();
+        ClassType selected_class = select_class();
 
-    Map map;
-    map_init(&map);
+        Map map;
+        map_init(&map);
 
-    int start_x, start_y;
-    map_generate_dungeon(&map, &start_x, &start_y);
+        int start_x, start_y;
+        map_generate_dungeon(&map, &start_x, &start_y);
 
-    Entity player = {"Player", start_x, start_y, '@', 2, 20, 20, 10, 10, 5, 0, 1, 0, selected_class, AI_NONE, true, {"None", 0, WEAPON_NONE}};
+        Entity player = {"Player", start_x, start_y, '@', 2, 20, 20, 10, 10, 5, 0, 1, 0, selected_class, AI_NONE, true, {"None", 0, WEAPON_NONE}};
 
-    // Adjust stats based on class
-    switch (selected_class) {
-        case CLASS_WARRIOR:
-            player.hp = player.max_hp = 30;
-            player.attack = 7;
-            player.mana = player.max_mana = 5;
-            strcpy(player.weapon.name, "Rusted Sword");
-            player.weapon.damage_bonus = 2;
-            player.weapon.type = WEAPON_SWORD;
-            break;
-        case CLASS_MAGE:
-            player.hp = player.max_hp = 15;
-            player.attack = 3;
-            player.mana = player.max_mana = 20;
-            strcpy(player.weapon.name, "Oak Staff");
-            player.weapon.damage_bonus = 1;
-            player.weapon.type = WEAPON_STAFF;
-            break;
-        case CLASS_ROGUE:
-            player.hp = player.max_hp = 20;
-            player.attack = 5;
-            player.mana = player.max_mana = 10;
-            strcpy(player.weapon.name, "Dull Dagger");
-            player.weapon.damage_bonus = 1;
-            player.weapon.type = WEAPON_SWORD;
-            break;
-    }
-    MonsterList monsters;
-    monster_init_list(&monsters);
-    spawn_monsters(&monsters, &map, player.level);
-
-    ItemList items;
-    item_init_list(&items);
-    item_spawn(&items, start_x + 1, start_y + 1, ITEM_HEALTH_POTION);
-
-    Skill melee = {"Melee", 0, 1, 5, SKILL_MELEE};
-    Skill fireball = {"Fireball", 10, 5, 12, SKILL_FIREBALL};
-
-    int ch;
-    bool quit = false;
-
-    while (!quit) {
-        clear();
-        map_compute_fov(&map, player.x, player.y, 8);
-        map_render(&map);
-
-        // Render items
-        for (int i = 0; i < items.count; i++) {
-            Item *it = &items.items[i];
-            if (it->alive && map.tiles[it->y][it->x].visible) {
-                attron(COLOR_PAIR(4));
-                mvaddch(it->y, it->x, it->symbol);
-                attroff(COLOR_PAIR(4));
-            }
-        }
-
-        // Render monsters
-        for (int i = 0; i < monsters.count; i++) {
-            Entity *m = &monsters.monsters[i];
-            if (m->alive && map.tiles[m->y][m->x].visible) {
-                attron(COLOR_PAIR(m->color));
-                mvaddch(m->y, m->x, m->symbol);
-                attroff(COLOR_PAIR(m->color));
-            }
-        }
-
-        // Render player
-        attron(COLOR_PAIR(player.color));
-        mvaddch(player.y, player.x, player.symbol);
-        attroff(COLOR_PAIR(player.color));
-
-        // Render stats
-        mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/%d | HP: %d/%d | Mana: %d/%d | 'h' for help, 'q' to quit",
-                 player.level, player.xp, 100 * player.level, player.hp, player.max_hp, player.mana, player.max_mana);
-        // Render messages
-        for (int i = 0; i < MAX_MESSAGES; i++) {
-            mvprintw(MAP_HEIGHT + 1 + i, 0, "%s", message_log[i]);
-        }
-
-        refresh();
-
-        ch = getch();
-        int new_x = player.x;
-        int new_y = player.y;
-        bool acted = false;
-
-        switch (ch) {
-            case 'q':
-            case 'Q':
-                quit = true;
+        // Adjust stats based on class
+        switch (selected_class) {
+            case CLASS_WARRIOR:
+                player.hp = player.max_hp = 30;
+                player.attack = 7;
+                player.mana = player.max_mana = 5;
+                strcpy(player.weapon.name, "Rusted Sword");
+                player.weapon.damage_bonus = 2;
+                player.weapon.type = WEAPON_SWORD;
                 break;
-            case 'h':
-            case 'H':
-            case '?':
-                show_help();
+            case CLASS_MAGE:
+                player.hp = player.max_hp = 15;
+                player.attack = 3;
+                player.mana = player.max_mana = 20;
+                strcpy(player.weapon.name, "Oak Staff");
+                player.weapon.damage_bonus = 1;
+                player.weapon.type = WEAPON_STAFF;
                 break;
-            case 'f':
-            case 'F':
-                if (player.class == CLASS_MAGE) {
-                    if (player.mana >= fireball.mana_cost) {
-                        add_message("You cast Fireball!");
-                        
-                        // Copy current monster HP to see who was hit
-                        int old_hps[MAX_MONSTERS];
-                        bool was_alive[MAX_MONSTERS];
-                        for (int i = 0; i < monsters.count; i++) {
-                            old_hps[i] = monsters.monsters[i].hp;
-                            was_alive[i] = monsters.monsters[i].alive;
-                        }
+            case CLASS_ROGUE:
+                player.hp = player.max_hp = 20;
+                player.attack = 5;
+                player.mana = player.max_mana = 10;
+                strcpy(player.weapon.name, "Dull Dagger");
+                player.weapon.damage_bonus = 1;
+                player.weapon.type = WEAPON_SWORD;
+                break;
+        }
+        MonsterList monsters;
+        monster_init_list(&monsters);
+        spawn_monsters(&monsters, &map, player.level);
 
-                        skill_use(fireball, &player, &map, &monsters, &player);
-                        
-                        for (int i = 0; i < monsters.count; i++) {
-                            Entity *m = &monsters.monsters[i];
-                            if (was_alive[i]) {
-                                int damage = old_hps[i] - m->hp;
-                                if (damage > 0) {
-                                    char msg[80];
-                                    snprintf(msg, 80, "The %s is engulfed in flames for %d!", m->name, damage);
-                                    add_message(msg);
-                                    if (!m->alive) {
-                                        snprintf(msg, 80, "The %s is incinerated! +%d XP.", m->name, m->xp_reward);
+        ItemList items;
+        item_init_list(&items);
+        item_spawn(&items, start_x + 1, start_y + 1, ITEM_HEALTH_POTION);
+
+        Skill melee = {"Melee", 0, 1, 5, SKILL_MELEE};
+        Skill fireball = {"Fireball", 10, 5, 12, SKILL_FIREBALL};
+
+        int ch;
+        bool quit = false;
+
+        while (!quit) {
+            clear();
+            map_compute_fov(&map, player.x, player.y, 8);
+            map_render(&map);
+
+            // Render items
+            for (int i = 0; i < items.count; i++) {
+                Item *it = &items.items[i];
+                if (it->alive && map.tiles[it->y][it->x].visible) {
+                    attron(COLOR_PAIR(4));
+                    mvaddch(it->y, it->x, it->symbol);
+                    attroff(COLOR_PAIR(4));
+                }
+            }
+
+            // Render monsters
+            for (int i = 0; i < monsters.count; i++) {
+                Entity *m = &monsters.monsters[i];
+                if (m->alive && map.tiles[m->y][m->x].visible) {
+                    attron(COLOR_PAIR(m->color));
+                    mvaddch(m->y, m->x, m->symbol);
+                    attroff(COLOR_PAIR(m->color));
+                }
+            }
+
+            // Render player
+            attron(COLOR_PAIR(player.color));
+            mvaddch(player.y, player.x, player.symbol);
+            attroff(COLOR_PAIR(player.color));
+
+            // Render stats
+            mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/%d | HP: %d/%d | Mana: %d/%d | 'h' for help, 'q' to quit",
+                     player.level, player.xp, 100 * player.level, player.hp, player.max_hp, player.mana, player.max_mana);
+            // Render messages
+            for (int i = 0; i < MAX_MESSAGES; i++) {
+                mvprintw(MAP_HEIGHT + 1 + i, 0, "%s", message_log[i]);
+            }
+
+            refresh();
+
+            ch = getch();
+            int new_x = player.x;
+            int new_y = player.y;
+            bool acted = false;
+
+            switch (ch) {
+                case 'q':
+                case 'Q':
+                    quit = true;
+                    break;
+                case 'h':
+                case 'H':
+                case '?':
+                    show_help();
+                    break;
+                case 'f':
+                case 'F':
+                    if (player.class == CLASS_MAGE) {
+                        if (player.mana >= fireball.mana_cost) {
+                            add_message("You cast Fireball!");
+                            
+                            // Copy current monster HP to see who was hit
+                            int old_hps[MAX_MONSTERS];
+                            bool was_alive[MAX_MONSTERS];
+                            for (int i = 0; i < monsters.count; i++) {
+                                old_hps[i] = monsters.monsters[i].hp;
+                                was_alive[i] = monsters.monsters[i].alive;
+                            }
+
+                            skill_use(fireball, &player, &map, &monsters, &player);
+                            
+                            for (int i = 0; i < monsters.count; i++) {
+                                Entity *m = &monsters.monsters[i];
+                                if (was_alive[i]) {
+                                    int damage = old_hps[i] - m->hp;
+                                    if (damage > 0) {
+                                        char msg[80];
+                                        snprintf(msg, 80, "The %s is engulfed in flames for %d!", m->name, damage);
                                         add_message(msg);
+                                        if (!m->alive) {
+                                            snprintf(msg, 80, "The %s is incinerated! +%d XP.", m->name, m->xp_reward);
+                                            add_message(msg);
+                                        }
                                     }
                                 }
                             }
+                            acted = true;
+                        } else {
+                            add_message("Not enough mana!");
                         }
-                        acted = true;
                     } else {
-                        add_message("Not enough mana!");
+                        add_message("Your class has no active skill.");
                     }
-                } else {
-                    add_message("Your class has no active skill.");
-                }
-                break;
-            case KEY_UP:
-            case 'w':
-                new_y--;
-                break;
-            case KEY_DOWN:
-            case 's':
-                new_y++;
-                break;
-            case KEY_LEFT:
-            case 'a':
-                new_x--;
-                break;
-            case KEY_RIGHT:
-            case 'd':
-                new_x++;
-                break;
-        }
+                    break;
+                case KEY_UP:
+                case 'w':
+                    new_y--;
+                    break;
+                case KEY_DOWN:
+                case 's':
+                    new_y++;
+                    break;
+                case KEY_LEFT:
+                case 'a':
+                    new_x--;
+                    break;
+                case KEY_RIGHT:
+                case 'd':
+                    new_x++;
+                    break;
+            }
 
-        if (new_x != player.x || new_y != player.y) {
-            if (new_x >= 0 && new_x < MAP_WIDTH && new_y >= 0 && new_y < MAP_HEIGHT) {
-                // Check for monster collision (attack)
-                bool monster_hit = false;
+            if (new_x != player.x || new_y != player.y) {
+                if (new_x >= 0 && new_x < MAP_WIDTH && new_y >= 0 && new_y < MAP_HEIGHT) {
+                    // Check for monster collision (attack)
+                    bool monster_hit = false;
+                    for (int i = 0; i < monsters.count; i++) {
+                        Entity *m = &monsters.monsters[i];
+                        if (m->alive && m->x == new_x && m->y == new_y) {
+                            int prev_hp = m->hp;
+                            skill_use(melee, &player, &map, &monsters, &player);
+                            int damage = prev_hp - m->hp;
+                            if (damage > 0) {
+                                char msg[80];
+                                snprintf(msg, 80, "You hit the %s for %d damage!", m->name, damage);
+                                add_message(msg);
+                                if (!m->alive) {
+                                    snprintf(msg, 80, "The %s dies! You gain %d XP.", m->name, m->xp_reward);
+                                    add_message(msg);
+                                }
+                            }
+                            
+                            monster_hit = true;
+                            acted = true;
+                            break;
+                        }
+                    }
+
+                    if (!monster_hit && map.tiles[new_y][new_x].type != TILE_WALL) {
+                        player.x = new_x;
+                        player.y = new_y;
+                        acted = true;
+
+                        // Check for item pickup
+                        for (int i = 0; i < items.count; i++) {
+                            Item *it = &items.items[i];
+                            if (it->alive && it->x == player.x && it->y == player.y) {
+                                if (it->type == ITEM_HEALTH_POTION) {
+                                    player.hp += 10;
+                                    if (player.hp > player.max_hp) player.hp = player.max_hp;
+                                    it->alive = false;
+                                    add_message("You picked up a Health Potion!");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (acted) {
+                // Level up check
+                int xp_cap = 100 * player.level;
+                if (player.xp >= xp_cap) {
+                    player.level++;
+                    player.xp -= xp_cap;
+                    player.max_hp += 10 + (player.level * 2);
+                    player.hp = player.max_hp;
+                    player.max_mana += 5 + player.level;
+                    player.mana = player.max_mana;
+                    player.attack += 2 + (player.level / 2);
+
+                    // Scale weapon damage
+                    player.weapon.damage_bonus += 1 + (player.level / 3);
+
+                    // Scale skill damage
+                    melee.damage += 2;
+                    fireball.damage += 5 + (player.level * 2); // Spells get more powerful
+
+                    char msg[80];
+                    snprintf(msg, 80, "LEVEL UP! Level %d! Weapon & Spells grew stronger!", player.level);
+                    add_message(msg);
+
+                    if (player.class == CLASS_MAGE && player.level == 3) {
+                        add_message("You mastered Fireball's true potential (Increased Range)!");
+                        fireball.range += 2;
+                    }
+                }
+                monster_update_all(&monsters, &map, &player);
+                // Basic monster attack player
                 for (int i = 0; i < monsters.count; i++) {
                     Entity *m = &monsters.monsters[i];
-                    if (m->alive && m->x == new_x && m->y == new_y) {
-                        int prev_hp = m->hp;
-                        skill_use(melee, &player, &map, &monsters, &player);
-                        int damage = prev_hp - m->hp;
-                        if (damage > 0) {
-                            char msg[80];
-                            snprintf(msg, 80, "You hit the %s for %d damage!", m->name, damage);
-                            add_message(msg);
-                            if (!m->alive) {
-                                snprintf(msg, 80, "The %s dies! You gain %d XP.", m->name, m->xp_reward);
-                                add_message(msg);
+                    if (m->alive && abs(m->x - player.x) <= 1 && abs(m->y - player.y) <= 1) {
+                        player.hp -= m->attack;
+                        char msg[80];
+                        snprintf(msg, 80, "The %s hits you for %d damage!", m->name, m->attack);
+                        add_message(msg);
+                        if (player.hp <= 0) {
+                            player.alive = false;
+                            add_message("YOU DIED! Game Over.");
+                            clear();
+                            map_render(&map);
+                            mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/%d | HP: %d/%d | Mana: %d/%d", 
+                             player.level, player.xp, 100 * player.level, player.hp, player.max_hp, player.mana, player.max_mana);
+                            for (int j = 0; j < MAX_MESSAGES; j++) mvprintw(MAP_HEIGHT + 1 + j, 0, "%s", message_log[j]);
+                            mvprintw(MAP_HEIGHT + 1 + MAX_MESSAGES, 0, "Play again? (y/n)");
+                            refresh();
+                            int r = getch();
+                            if (r == 'y' || r == 'Y') {
+                                play_again = true;
                             }
+                            quit = true;
+                            break;
                         }
-                        
-                        monster_hit = true;
-                        acted = true;
-                        break;
-                    }
-                }
-
-                if (!monster_hit && map.tiles[new_y][new_x].type != TILE_WALL) {
-                    player.x = new_x;
-                    player.y = new_y;
-                    acted = true;
-
-                    // Check for item pickup
-                    for (int i = 0; i < items.count; i++) {
-                        Item *it = &items.items[i];
-                        if (it->alive && it->x == player.x && it->y == player.y) {
-                            if (it->type == ITEM_HEALTH_POTION) {
-                                player.hp += 10;
-                                if (player.hp > player.max_hp) player.hp = player.max_hp;
-                                it->alive = false;
-                                add_message("You picked up a Health Potion!");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (acted) {
-            // Level up check
-            int xp_cap = 100 * player.level;
-            if (player.xp >= xp_cap) {
-                player.level++;
-                player.xp -= xp_cap;
-                player.max_hp += 10 + (player.level * 2);
-                player.hp = player.max_hp;
-                player.max_mana += 5 + player.level;
-                player.mana = player.max_mana;
-                player.attack += 2 + (player.level / 2);
-
-                // Scale weapon damage
-                player.weapon.damage_bonus += 1 + (player.level / 3);
-
-                // Scale skill damage
-                melee.damage += 2;
-                fireball.damage += 5 + (player.level * 2); // Spells get more powerful
-
-                char msg[80];
-                snprintf(msg, 80, "LEVEL UP! Level %d! Weapon & Spells grew stronger!", player.level);
-                add_message(msg);
-
-                if (player.class == CLASS_MAGE && player.level == 3) {
-                    add_message("You mastered Fireball's true potential (Increased Range)!");
-                    fireball.range += 2;
-                }
-            }
-            monster_update_all(&monsters, &map, &player);
-            // Basic monster attack player
-            for (int i = 0; i < monsters.count; i++) {
-                Entity *m = &monsters.monsters[i];
-                if (m->alive && abs(m->x - player.x) <= 1 && abs(m->y - player.y) <= 1) {
-                    player.hp -= m->attack;
-                    char msg[80];
-                    snprintf(msg, 80, "The %s hits you for %d damage!", m->name, m->attack);
-                    add_message(msg);
-                    if (player.hp <= 0) {
-                        player.alive = false;
-                        add_message("YOU DIED! Game Over.");
-                        clear();
-                        map_render(&map);
-                        mvprintw(MAP_HEIGHT, 0, "Lvl: %d | XP: %d/%d | HP: %d/%d | Mana: %d/%d", 
-                         player.level, player.xp, 100 * player.level, player.hp, player.max_hp, player.mana, player.max_mana);
-                        for (int j = 0; j < MAX_MESSAGES; j++) mvprintw(MAP_HEIGHT + 1 + j, 0, "%s", message_log[j]);
-                        refresh();
-                        getch();
-                        quit = true;
                     }
                 }
             }
